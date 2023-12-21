@@ -1,2 +1,19 @@
-Time:        40929790
-Distance:   215106415051100
+backspace
+right arrow 
+backspace
+backspace
+backspace
+backspace
+backspace
+backspace
+backspace
+backspace
+2
+0
+2
+3
+1
+2
+2(date 1st number)
+backspace
+1(date 2nd number)
