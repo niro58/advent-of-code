@@ -68,14 +68,71 @@ func calculateFirstPart(input string) int {
 	fmt.Println("Found the cuck in", index,"steps")
 	return 0
 }
+func calculateSecondPart(input string) int {
+	lines := strings.Split(input, "\r\n")
+
+	directions := make(map[string]Direction, len(lines) - 2)
+
+	commands := lines[0]
+
+	for _, line := range lines[2:]{
+		line = strings.Replace(line, " ", "",-1)
+		commaDelimiter := strings.Split(line, ",")
+		key := commaDelimiter[0][0:3]
+		leftValue := commaDelimiter[0][len(commaDelimiter[0]) - 3:len(commaDelimiter[0])]
+		rightValue := commaDelimiter[1][0:3]
+		writeDirection(key+ " = ( " + leftValue+" "+rightValue+ " )")
+		directions[key] = Direction{
+			leftValue,
+			rightValue,
+		}
+	}
+	var currentDirections []string
+	for key := range directions {
+		fmt.Println(key)
+		if strings.HasSuffix(key, "A"){
+			currentDirections = append(currentDirections, key)
+		}
+	}
+	fmt.Println("Commands", commands, len(commands))
+
+	steps := 0
+
+	for {
+		for _,cmd := range commands{
+			isValid := true
+			for i, pos := range currentDirections {
+				dir,ok := directions[pos]
+				if (!ok){
+					fmt.Println(pos,ok)
+				}
+				if(cmd == 'L'){
+					currentDirections[i] = dir.left
+				}else{
+					currentDirections[i] = dir.right
+				}
+				if !strings.HasSuffix(currentDirections[i], "Z"){
+					isValid = false
+				}
+			}
+			steps += 1
+			if steps % 10000000 == 0{
+				fmt.Println(steps)
+			}
+			if isValid{
+				return steps
+			}
+		}
+	}
+}
 
 func main() {
-	input,err := os.ReadFile("inputs\\01_003.txt")
+	input,err := os.ReadFile("inputs\\02_002.txt")
     if err != nil {
         fmt.Println(err)
     }
 
-	res := calculateFirstPart(string(input))
+	res := calculateSecondPart(string(input))
 	fmt.Println(res)
 
 }
