@@ -1,19 +1,19 @@
 package main
 
 import (
-	"advent-of-code-day-9/firstPart"
+	"advent-of-code-day-9/secondPart"
 	"fmt"
 	"os"
 )
 
 
 func main() {
-	input,err := os.ReadFile("inputs\\02_001.txt")
+	input,err := os.ReadFile("inputs\\02_002.txt")
     if err != nil {
         fmt.Println(err)
     }
 
-	res := firstPart.Main(string(input))
+	res := secondPart.Main(string(input))
 	fmt.Println(res)
 
 }
