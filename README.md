@@ -1,1 +1,1 @@
-New to Go so learning atm , cooking some :poop: slowly getting better :)
+New to Go so learning atm , cooking :poop: atm, but slowly getting better :)
