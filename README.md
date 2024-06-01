@@ -1,0 +1,1 @@
+New to Go so learning atm , cooking some :poop: slowly getting better :)
