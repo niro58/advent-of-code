@@ -1,19 +1,19 @@
 package main
 
 import (
-	"aoc-day-5/firstPart"
+	"aoc-day-5/secondPart"
 	"fmt"
 	"os"
 )
 
 
 func main() {
-	input,err := os.ReadFile("inputs\\01_002.txt")
+	input,err := os.ReadFile("inputs\\02_001.txt")
     if err != nil {
         fmt.Println(err)
     }
 
-	res := firstPart.Main(string(input))
+	res := secondPart.Main(string(input))
 	fmt.Println(res)
 
 }
