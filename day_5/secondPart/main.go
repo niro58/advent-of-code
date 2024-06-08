@@ -22,10 +22,14 @@ type SoilMap struct {
 	Value int
 	MaxOffset int
 }
-func getSoils(input string) []int {
+type Soil struct{
+	Value int
+	Range int
+}
+func getSoils(input string) []Soil {
 	soilsLine := strings.Split(input, "\r\n")[0]
 	soilsLine = strings.Replace(soilsLine, "seeds: ","",1)
-	soils := []int{}
+	soils := []Soil{}
 	soilsRaw := strings.Split(soilsLine, " ")
 	for i := 0; i < len(soilsRaw); i += 2{
 		fmt.Println(i)
@@ -33,13 +37,16 @@ func getSoils(input string) []int {
 		if err != nil {
 			panic(err)
 		}
-		for j := range soilRange{
-			soil, err := strconv.Atoi(soilsRaw[i])
-			if err != nil{
-				panic(err)
-			}
-			soils = append(soils, soil + j)
+		soilValue, err := strconv.Atoi(soilsRaw[i])
+		if err != nil {
+			panic(err)
 		}
+		soil := Soil{
+			Value: soilValue,
+			Range: soilRange,
+		}
+		soils = append(soils, soil)
+
 	}
 
 	return soils
@@ -82,28 +89,92 @@ func getSoilMaps(input string) [][]SoilMap{
 	}
 	return maps
 }
-func calculateLowestSoil(soils []int, soilMaps [][]SoilMap) int{
+func calculateLowestSoil(soils []Soil, soilMaps [][]SoilMap) int{
+	fmt.Println(soils)
 	fmt.Println("starting calculating lowest soil")
-	for i := range soils{
-		for _, soilMap := range soilMaps{
-			for _, soilMapValue := range soilMap{
-				if soils[i] < soilMapValue.Key || soils[i] > soilMapValue.Key + soilMapValue.MaxOffset{
+	fmt.Println(soilMaps)
+	for _, soilMap := range soilMaps{
+		for _, soilMapValue := range soilMap{
+			temp := []Soil{}
+			for _, soil := range soils{
+				if soil.Range == 0 {
 					continue
 				}
-				soils[i] += (soilMapValue.Value - soilMapValue.Key)
-				break
-			}
+				isOutOfRange := soilMapValue.Key > soil.Value + soil.Range || soilMapValue.Key + soilMapValue.MaxOffset < soil.Value
+				if isOutOfRange {
+					temp = append(temp, soil)
+					continue
+					}
+				fmt.Println("----")
+				fmt.Println(soilMapValue)
+				fmt.Println(soil)
+
+				isWholeRange :=  soilMapValue.Key <= soil.Value && soilMapValue.Key + soilMapValue.MaxOffset >= soil.Value + soil.Range
+				isInBetween := soilMapValue.Key > soil.Value && soilMapValue.Key + soilMapValue.MaxOffset < soil.Value + soil.Range
+				if isWholeRange{
+					fmt.Println("Is whole range")
+					rangeSoil := Soil{
+						Value: soil.Value - soilMapValue.Key + soilMapValue.Value,
+						Range: soil.Range,
+					}
+					fmt.Println(rangeSoil)
+					temp = append(temp, rangeSoil)
+				}else if isInBetween {
+					fmt.Println("is in between")
+					startSoil := Soil {
+						Value: soil.Value,
+						Range: soilMapValue.Key - soil.Value,
+					}
+					inBetweenSoil := Soil {
+						Value: soilMapValue.Value,
+						Range: (soilMapValue.Key + soilMapValue.MaxOffset) - soilMapValue.Key,
+					}
+					endSoil := Soil{
+						Value: soilMapValue.Key + soilMapValue.MaxOffset,
+						Range: (soil.Value + soil.Range) - (soilMapValue.Key + soilMapValue.MaxOffset),
+					}
+					fmt.Println(startSoil,inBetweenSoil,endSoil)
+					temp = append(temp, startSoil, inBetweenSoil,endSoil)
+				}else if (soilMapValue.Key <= soil.Value){
+					fmt.Println("is from left")
+					startSoil := Soil{
+						Value: soilMapValue.Value  + (soil.Value  - soilMapValue.Key),
+						Range: (soilMapValue.Key + soilMapValue.MaxOffset) - soil.Value,
+					}
+					endSoil := Soil{
+						Value: soilMapValue.Key + soilMapValue.MaxOffset ,
+						Range: (soil.Value + soil.Range) - (soilMapValue.Key + soilMapValue.MaxOffset),
+					}
+					fmt.Println(startSoil,endSoil)
+					temp = append(temp, startSoil,endSoil)
+				}else{
+					fmt.Println("is from right")
+					startSoil:= Soil{
+						Value: soil.Value,
+						Range: soilMapValue.Key - soil.Value,
+					}
+					endSoil := Soil{
+						Value: soilMapValue.Value,
+						Range: soil.Value + soil.Range - soilMapValue.Key,
+					}
+					fmt.Println(startSoil,endSoil)
+					temp = append(temp, startSoil,endSoil)
+				}
+
+				}
+			soils = temp
 		}
 	}
-	min := soils[0]
-	for _, i := range soils{
-		if i < min{
-			min = i
+	min := soils[0].Value
+	for _, s := range soils{
+		if s.Value < min && s.Range > 0{
+			min = s.Value
 		}
 	}
 
 	return min
 }
+
 func Main(input string) int {
 	soils := getSoils(input)
 	soilMaps := getSoilMaps(input)
