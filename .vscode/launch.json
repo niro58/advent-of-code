@@ -1,12 +1,12 @@
 {
   "version": "0.2.0",
   "configurations": [
-    
     {
       "name": "advent-of-code",
       "type": "go",
       "request": "launch",
-      "mode": "auto"
+      "mode": "auto",
+      "program": "${workspaceFolder}/day_10/firstPart/main.go"
     }
   ]
 }

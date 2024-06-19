@@ -9,10 +9,6 @@ type position struct{
 	x int
 	y int
 }
-func (self *position) increment(add *position){
-	self.x += add.x
-	self.y += add.y
-}
 type mapPoint struct{
 	AsciiChar rune
 	Position position
@@ -71,7 +67,7 @@ var commandList = map[rune]struct {
 	'L': {
 		Directions: []position{
 			{
-				x: -1,
+				x: 1,
 				y: 0,
 			},
 			{
@@ -83,7 +79,7 @@ var commandList = map[rune]struct {
 	'J': {
 		Directions: []position{
 			{
-				x: 1,
+				x: -1,
 				y: 0,
 			},
 			{
@@ -95,7 +91,7 @@ var commandList = map[rune]struct {
 	'7': {
 		Directions: []position{
 			{
-				x: 1,
+				x: -1,
 				y: 0,
 			},
 			{
@@ -107,7 +103,7 @@ var commandList = map[rune]struct {
 	'F': {
 		Directions: []position{
 			{
-				x: -1,
+				x: 1,
 				y: 0,
 			},
 			{
@@ -118,15 +114,14 @@ var commandList = map[rune]struct {
 	},
 }
 func createMatrix(input string) ([][]mapPoint, *mapPoint){
-	var xSize, ySize int
+	var ySize int
 	lines := strings.Split(input, "\r\n")
-	xSize = len(lines)
 	ySize = len(lines[0])
 	matrix := make([][]mapPoint, ySize)
 	var startPosition *mapPoint
 
 	for index := range matrix{
-		matrix[index] = make([]mapPoint, xSize)
+		matrix[index] = make([]mapPoint, ySize)
 	}
 
 	for y, str := range lines{
@@ -145,66 +140,65 @@ func createMatrix(input string) ([][]mapPoint, *mapPoint){
 	}
 	return matrix, startPosition
 }
-// todo: start handling , maybe in the main function before anything else, change grow function because it wont work much
-func grow(matrix *[][]mapPoint, point *mapPoint) *mapPoint{
-	i, ok := commandList[point.AsciiChar]
+
+func grow(matrix *[][]mapPoint, point *mapPoint) []*mapPoint{
+	commandValue, ok := commandList[point.AsciiChar]
 	if !ok{
-		return point
+		return nil
 	}
-	aPos := position{
-		point.Position.x,
-		point.Position.y,
+	var res []*mapPoint
+
+	for _, direction := range commandValue.Directions{
+		y := point.Position.y + direction.y
+		x := point.Position.x + direction.x
+		if y < 0 || x < 0 ||  len((*matrix)) <= y || len((*matrix)[0]) <= x {
+			continue
+		}
+		matrixPoint := &((*matrix)[y][x])
+		if matrixPoint.Distance == 0 && matrixPoint.AsciiChar != '.' && matrixPoint.AsciiChar != 'S'{
+			res = append(res, matrixPoint)
+			matrixPoint.Distance = point.Distance + 1
+		}
 	}
-	aPos.increment(&i.DirectionA)
-
-	bPos:= position{
-		point.Position.x,
-		point.Position.y,
+	fmt.Println("Current Location")
+	fmt.Println(string(point.AsciiChar), point.Distance, point.Position)
+	fmt.Println("Returning")
+	for _, r := range res{
+		fmt.Println(string(r.AsciiChar), r.Distance, r.Position)
 	}
-	bPos.increment(&i.DirecitonB)
-
-	aPoint := (*matrix)[aPos.y][aPos.x]
-	bPoint := (*matrix)[bPos.y][bPos.x]
-
-	if aPoint.Distance != 0 {
-		aPoint.Distance = point.Distance + 1
-		return &aPoint
-	}else if bPoint.Distance != 0{
-		bPoint.Distance = point.Distance + 1
-		return &bPoint
-	}else{
-		panic("why no distances around me  ?!?!")
-	}
-
+	return res
 }
 func calculateMaxDistance(input string) int {
 	matrix, startPoint := createMatrix(input)
+	fmt.Println("Start point", startPoint.Position)
 
-	fmt.Println(startPoint)
 
 	var activePoints []*mapPoint
 	activePoints = append(activePoints,
-		&matrix[startPoint.Position.x - 1][startPoint.Position.y],
-		&matrix[startPoint.Position.x + 1][startPoint.Position.y],
-		&matrix[startPoint.Position.x][startPoint.Position.y + 1],
-		&matrix[startPoint.Position.x][startPoint.Position.y - 1],
+		&matrix[startPoint.Position.y][startPoint.Position.x],
 	)
-	for _, point := range activePoints{
-		point.Distance = 1
-	}
 
 	for len(activePoints) > 0{
-		n := len(activePoints) - 1 // top element
-		point := activePoints[n]
-		activePoints = activePoints[:n]
+		point := activePoints[0]
+		activePoints = activePoints[1:]
 
+		newPoints := grow(&matrix, point)
+		activePoints = append(activePoints, newPoints...)
+	}
+	max := 0
+	for _, row := range matrix{
 
-		fmt.Println("y",point)
+		for _, val := range row{
+			if val.Distance > max{
+				max = val.Distance
+			}
+			fmt.Print(val.Distance," ")
+		}
+		fmt.Println()
 	}
 
 
-
-	return 0
+	return max
 }
 
 
