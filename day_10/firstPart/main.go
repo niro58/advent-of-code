@@ -116,7 +116,7 @@ var commandList = map[rune]struct {
 func createMatrix(input string) ([][]mapPoint, *mapPoint){
 	var ySize int
 	lines := strings.Split(input, "\r\n")
-	ySize = len(lines[0])
+	ySize = len(lines)
 	matrix := make([][]mapPoint, ySize)
 	var startPosition *mapPoint
 
@@ -155,9 +155,17 @@ func grow(matrix *[][]mapPoint, point *mapPoint) []*mapPoint{
 			continue
 		}
 		matrixPoint := &((*matrix)[y][x])
+		possibleDir, ok := commandList[matrixPoint.AsciiChar]
+		if !ok {
+			panic("errr")
+		}
 		if matrixPoint.Distance == 0 && matrixPoint.AsciiChar != '.' && matrixPoint.AsciiChar != 'S'{
-			res = append(res, matrixPoint)
-			matrixPoint.Distance = point.Distance + 1
+			for _, dir := range possibleDir.Directions{
+				if dir.x * -1 == direction.x && dir.y * -1 == direction.y{
+					res = append(res, matrixPoint)
+					matrixPoint.Distance = point.Distance + 1
+				}
+			}
 		}
 	}
 	fmt.Println("Current Location")
@@ -166,6 +174,7 @@ func grow(matrix *[][]mapPoint, point *mapPoint) []*mapPoint{
 	for _, r := range res{
 		fmt.Println(string(r.AsciiChar), r.Distance, r.Position)
 	}
+
 	return res
 }
 func calculateMaxDistance(input string) int {
@@ -177,10 +186,19 @@ func calculateMaxDistance(input string) int {
 	activePoints = append(activePoints,
 		&matrix[startPoint.Position.y][startPoint.Position.x],
 	)
-
+	takeStart := true
 	for len(activePoints) > 0{
-		point := activePoints[0]
-		activePoints = activePoints[1:]
+		var point *mapPoint
+		if takeStart{
+			point = activePoints[0]
+			activePoints = activePoints[1:]
+			takeStart = false
+		}else{
+			n := len(activePoints) - 1
+			point = activePoints[n]
+			activePoints = activePoints[:n]
+			takeStart = true
+		}
 
 		newPoints := grow(&matrix, point)
 		activePoints = append(activePoints, newPoints...)
