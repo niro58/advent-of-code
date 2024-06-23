@@ -115,13 +115,15 @@ var commandList = map[rune]struct {
 }
 func createMatrix(input string) ([][]mapPoint, *mapPoint){
 	var ySize int
+	var xSize int
 	lines := strings.Split(input, "\r\n")
+	xSize = len(lines[0])
 	ySize = len(lines)
 	matrix := make([][]mapPoint, ySize)
 	var startPosition *mapPoint
 
 	for index := range matrix{
-		matrix[index] = make([]mapPoint, ySize)
+		matrix[index] = make([]mapPoint, xSize)
 	}
 
 	for y, str := range lines{
@@ -210,7 +212,11 @@ func calculateMaxDistance(input string) int {
 			if val.Distance > max{
 				max = val.Distance
 			}
-			fmt.Print(val.Distance," ")
+			fmt.Print(val.Distance)
+			fmt.Print(" ")
+			if val.Distance < 10{
+				fmt.Print(" ")
+			}
 		}
 		fmt.Println()
 	}
