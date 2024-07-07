@@ -14,8 +14,14 @@ type mapPoint struct{
 	Position position
 	Distance int
 }
+type secondMatrixStruct struct {
+	Position position
+	IsEnclosed bool
+	AsciiChar rune
+	Distance int
+}
 var commandList = map[rune]struct {
-	Directions []position
+	Directions []position;
 }{
 	'.': {
 		Directions: nil,
@@ -113,6 +119,7 @@ var commandList = map[rune]struct {
 		},
 	},
 }
+
 func createMatrix(input string) ([][]mapPoint, *mapPoint){
 	var ySize int
 	var xSize int
@@ -137,6 +144,7 @@ func createMatrix(input string) ([][]mapPoint, *mapPoint){
 			}
 			if r == 'S'{
 				startPosition = &matrix[y][x]
+
 			}
 		}
 	}
@@ -180,51 +188,62 @@ func grow(matrix *[][]mapPoint, point *mapPoint) []*mapPoint{
 
 	return res
 }
+func isEnclosed (matrix [][]secondMatrixStruct, startPoint position) bool{
+	var checkedPoints []position
+	var activePoints []position
+	activePoints = append(activePoints, startPoint)
 
-func isAvailableCell (checkedCells *[]mapPoint, point *mapPoint) bool{
-	for _, cell := range (*checkedCells){
-		if cell.Position == point.Position{
-			return false
+	for len(activePoints) > 0{
+		point := activePoints[0]
+		activePoints = activePoints[1:]
+		checkedPoints = append(checkedPoints,point)
+
+		for y := -1 ; y <= 1; y++{
+			for x := -1 ; x <= 1 ; x++{
+				if x != 0 && y != 0 && x != y{
+					continue
+				}
+				newPoint := position{
+					x: point.x + x,
+					y: point.y + y,
+				}
+
+				if newPoint.y < 0 || newPoint.x < 0 ||  len((matrix)) <= newPoint.y || len((matrix)[0]) <= newPoint.x {
+					return false
+				}
+
+				isDuplicate := false
+				for _, p := range checkedPoints{
+					if p.x == newPoint.x && p.y == newPoint.y{
+						isDuplicate = true
+					}
+				}
+				if isDuplicate{
+					continue
+				}
+				for _, p := range activePoints{
+					if p.x == newPoint.x && p.y == newPoint.y{
+						isDuplicate = true
+					}
+				}
+				if isDuplicate{
+					continue
+				}
+
+				mp :=  matrix[newPoint.y][newPoint.x]
+				if mp.IsEnclosed || mp.AsciiChar == 'S'{
+					continue
+				}
+
+				activePoints = append(activePoints, newPoint)
+			}
 		}
 	}
 	return true
 }
-func isEnclosedCell(matrix *[][]mapPoint, point mapPoint, alreadyCheckedCells *[]mapPoint) (bool, []mapPoint){
-	
-	var checkedCells []mapPoint
-	var availableCells []mapPoint
-	availableCells = append(availableCells, point)
-	for len(availableCells) > 0{
-		cell := availableCells[0]
-		checkedCells = append(checkedCells, cell)
-		availableCells = availableCells[1:]
 
-		for x := -1; x <= 1; x++{
-			for y := -1; y <= 1; y++{
-				if x == y{
-					continue
-				}
-				xNew := cell.Position.x + x
-				yNew := cell.Position.y + y
-				if yNew < 0 || xNew < 0 ||  len((*matrix)) <= yNew || len((*matrix)[0]) <= xNew {
-
-					return false,checkedCells
-				}
-
-				cell := (*matrix)[yNew][xNew]
-				if !isAvailableCell(alreadyCheckedCells, &cell) || isAvailableCell(&checkedCells, &cell){
-					checkedCells = append(checkedCells, cell)
-					continue
-				}
-				availableCells = append(availableCells, cell)
-			}
-		}
-	}
-	return true,checkedCells
-}
 func calculateMaxDistance(input string) int {
 	matrix, startPoint := createMatrix(input)
-	fmt.Println("Start point", startPoint.Position)
 
 
 	var activePoints []*mapPoint
@@ -249,50 +268,110 @@ func calculateMaxDistance(input string) int {
 		activePoints = append(activePoints, newPoints...)
 	}
 
-	//printMatrix(&matrix)
-
-	totalEnclosedChars := 0
-
-
-	var checkedCells []mapPoint
-
-	fmt.Println("Total", len(matrix) * len(matrix[0]))
+	var nonLoopPoints []position
 	for _, row := range matrix{
-		// fmt.Println(y, "/",len(matrix))
 		for _, val := range row{
-			if val.Distance != 0{
-				fmt.Print(val.Distance, " ")
-				if val.Distance < 10 {
-					fmt.Print(" ")
-				}
-				continue
+			if val.Distance == 0 && val.AsciiChar != 'S'{
+				nonLoopPoints = append(nonLoopPoints, val.Position)
 			}
-			if !isAvailableCell(&checkedCells, &val){
-				continue
-			}
-
-			ok, funcCheckedCells := isEnclosedCell(&matrix, val, &checkedCells)
-			if ok {
-				fmt.Print("I", " ", " ")
-				totalEnclosedChars += 1
-			}else{
-				fmt.Print("0", " ", " ")
-			}
-			checkedCells = append(checkedCells, funcCheckedCells...)
-
 		}
-		fmt.Println()
 	}
 
 
-	return totalEnclosedChars
+	ySize := len(matrix)
+	xSize := len(matrix[0])
+	fmt.Println("Matrix size Y:", ySize, "X:", xSize )
+
+	secondMatrix := make([][]secondMatrixStruct, ySize * 2)
+	for y := range secondMatrix{
+		secondMatrix[y] = make([]secondMatrixStruct, xSize * 2)
+	}
+
+	fmt.Println("Matrix size Y:", len(secondMatrix), "X:", len(secondMatrix[0]) )
+
+	for y, row := range matrix{
+		for x, cell := range row{
+
+			if cell.Distance == 0 && cell.AsciiChar != 'S'{
+				continue
+			}
+			secondMatrixPos := position{
+				x: x * 2,
+				y: y * 2,
+			}
+			secondMatrix[secondMatrixPos.y][secondMatrixPos.x] = secondMatrixStruct{
+				Position: position{
+					x: x * 2,
+					y: y * 2,
+				},
+				IsEnclosed: cell.Distance > 0,
+				AsciiChar: cell.AsciiChar,
+				Distance: cell.Distance,
+			}
+
+			commandValue, ok := commandList[cell.AsciiChar]
+			if !ok{
+				panic(ok)
+			}
+
+			for _, dir := range commandValue.Directions{
+				mainMatrixDirPos := position{
+					x: x + dir.x,
+					y: y + dir.y,
+				}
+				secondMatrixDirPos := position{
+					x: secondMatrixPos.x + dir.x,
+					y: secondMatrixPos.y + dir.y,
+				}
+				if mainMatrixDirPos.y < 0 || mainMatrixDirPos.x < 0 ||  len(matrix) <= mainMatrixDirPos.y || len(matrix[0]) <= mainMatrixDirPos.x {
+					continue
+				}
+				distDiff := cell.Distance - matrix[mainMatrixDirPos.y][mainMatrixDirPos.x].Distance
+
+				if distDiff != -1 && distDiff != 1 {
+					continue
+				}
+
+
+				secondMatrix[secondMatrixDirPos.y][secondMatrixDirPos.x] = secondMatrixStruct{
+					Position: position{
+						x: secondMatrixPos.x,
+						y: secondMatrixPos.y,
+					},
+					IsEnclosed: true,
+					AsciiChar: '-',
+					Distance: cell.Distance,
+				}
+
+
+			}
+
+
+		}
+	}
+	res := 0
+	for i, p := range nonLoopPoints{
+		fmt.Println(i, "/", len(nonLoopPoints))
+		secondMatrixPos := position{
+			x: p.x * 2,
+			y: p.y * 2,
+		}
+		secondMatrix[secondMatrixPos.y][secondMatrixPos.x].Distance = -1
+		if isEnclosed(secondMatrix, secondMatrixPos){
+			res += 1
+			fmt.Println("Is enclosed", secondMatrixPos)
+		}
+	}
+
+	fmt.Println("Total len is", res)
+	return res
 }
 
 
 func main() {
 	input,err := os.ReadFile("..\\inputs\\01_001.txt")
     if err != nil {
-        fmt.Println(err)
+        fmt.Print(err)
     }
 
 	res := calculateMaxDistance(string(input))
