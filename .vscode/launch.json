@@ -6,7 +6,7 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/day_10/secondPart/main.go"
+      "program": "${workspaceFolder}/day_11/firstPart.go"
     }
   ]
 }
