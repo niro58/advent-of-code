@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 func calculateOccurences(hash string) []int{
 	hash += "."
@@ -45,9 +46,11 @@ func isEqual(a []int, b []int) bool{
 }
 func matchingOccs(a []int, toMatch []int) int{
 	for i := range toMatch{
-	
+		
 		if len(a) - 1 < i || a[i] != toMatch[i] {
 			return i
+		}else if a[i] < toMatch[i]{
+			return -1
 		}
 	}
 	if len(a) > len(toMatch){
@@ -63,56 +66,61 @@ func startsWith(s string, with string) bool{
 	}
 	return true
 }
-type HashWithIndex struct{
-	Hash string
-	Index int
-}
+
 func processRow(hash string, validOccs []int) int{
 	var closedHashes []string
-	openHashes := []HashWithIndex {{
-		Hash: hash,
-		Index: 0,
-	}}
-	for len(openHashes) > 0{
-		
-		h := openHashes[0]
-		openHashes = openHashes[1:]
+	var currHashes []string
+	currHashes = append(currHashes, hash)
+	
+	var nextHashes []string
+	i := 0
+
+
+	for{
+		if len(currHashes) == 0{
+			i += 1
+			fmt.Println(i, "/",len(hash), "Len",len(nextHashes))
+			currHashes = append([]string{},nextHashes...)
+			if len(currHashes) == 0{
+				break
+			}
+			nextHashes = []string{}
+		} 
+
+		h := currHashes[0]
+		currHashes = currHashes[1:]
 
 		
-		occ := calculateOccurences(h.Hash)
+		occ := calculateOccurences(h)
 		position := matchingOccs(occ, validOccs)
-		
-		if position == len(validOccs) && !contains(closedHashes,h.Hash) {
-			closedHashes = append(closedHashes, h.Hash)
+		if position == -1{
+			continue
+		}
+		if position == len(validOccs) && !contains(closedHashes,h) {
+			closedHashes = append(closedHashes, h)
 			continue
 		}
 		
-		if h.Index >= len(hash){
+		if i >= len(hash){
 			continue
 		}
-		openHashes = append(openHashes, HashWithIndex{
-			Hash:h.Hash,
-			Index: h.Index + 1,
-		})
+		nextHashes = append(nextHashes, h)
 
-		if h.Hash[h.Index] != '?'{
+		if h[i] != '?'{
 			continue
 		}
 
-		hArr := []rune(h.Hash)
-		hArr[h.Index] = '#'
+		hArr := []rune(h)
+		hArr[i] = '#'
 
-		openHashes = append(openHashes, HashWithIndex{
-			Hash:string(hArr),
-			Index: h.Index + 1,
-		})
+		nextHashes = append(nextHashes, string(hArr))
 	}
 	fmt.Println("==========")
 	fmt.Println(hash,validOccs, len(closedHashes))
-	fmt.Println("Results")
-	for _, r := range closedHashes{
-		fmt.Println(r)
-	}
+	// fmt.Println("Results")
+	// for _, r := range closedHashes{
+	// 	fmt.Println(r)
+	// }
 
 	return len(closedHashes)
 }
@@ -129,7 +137,19 @@ func firstPart(input string) int{
 			i,_ := strconv.Atoi(occ)
 			occs = append(occs, i)
 		}
-		resInt := processRow(hash, occs)
+
+		var fOccs []int 
+		var fHashes string
+		for i := range 5 {
+			fOccs = append(fOccs, occs...)
+			if i == 4 {
+				fHashes += hash
+			}else{
+				fHashes += hash + "?"
+			}
+		}
+
+		resInt := processRow(fHashes, fOccs)
 
 		total += resInt
 		// fmt.Println("Total for", hash, "Results", resInt)
@@ -137,6 +157,9 @@ func firstPart(input string) int{
 	return total
 }
 func main() {
+	start := time.Now()
+	
+
 	input, _ := os.ReadFile(".\\input\\1.txt")
 
 	res:= firstPart(string(input))
@@ -147,4 +170,5 @@ func main() {
 	// 	 panic("Test failed")
 	// }
 	fmt.Println("POG")
+	fmt.Println("Execution time: ", time.Since(start))
 }
