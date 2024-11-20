@@ -24,105 +24,79 @@ func calculateOccurences(hash string) []int{
 	}
 	return occurences
 }
-func contains(slice []string, item string) bool {
-    for _, v := range slice {
-        if v == item {
-            return true
-        }
-    }
-    return false
-}
-func isEqual(a []int, b []int) bool{
-	if len(a) != len(b){
-		return false
+func canFinish(a []int, position int, left int) bool{
+	sum := -1
+	for i:= len(a) - 1 ;i > position ; i--{
+		sum += a[i] + 1
 	}
 
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+	return left >= sum
 }
-func matchingOccs(a []int, toMatch []int) int{
+func matchingOccs(a []int,toMatch []int, maxToMatch int) int{
+
 	for i := range toMatch{
-		
-		if len(a) - 1 < i || a[i] != toMatch[i] {
-			return i
-		}else if a[i] < toMatch[i]{
+		if toMatch[i] > maxToMatch {
 			return -1
+		}else if len(a) - 1 < i || a[i] != toMatch[i]{
+			return i
 		}
 	}
+	
 	if len(a) > len(toMatch){
 		return -1
 	}
 	return len(toMatch)
 }
-func startsWith(s string, with string) bool{
-	for i := range with{
-		if s[i] != with[i]{
-			return false
-		}
+func processMemo(hash string, i int, validOccs []int, res *int, totalIter *int) {
+	*totalIter += 1
+
+	var maxOcc int
+	for i := range validOccs{
+		maxOcc = max(maxOcc, validOccs[i])
 	}
-	return true
+
+	occ := calculateOccurences(hash)
+	position := matchingOccs(occ, validOccs, maxOcc)
+	if position == -1 {
+		return
+	}else if  !canFinish(validOccs,position, len(hash) - i){
+		fmt.Println("Hash",hash,"Position",position,"Valid occs",validOccs)
+		return
+	}
+	if position == len(validOccs) {
+		*res += 1
+		return
+	}
+	
+	if i == len(hash) {
+		return
+	}
+
+	processMemo(hash, i + 1, validOccs, res, totalIter)
+
+	if hash[i] != '?'{
+		return
+	}
+
+	hArr := []rune(hash)
+	hArr[i] = '#'
+
+	processMemo(string(hArr), i + 1, validOccs, res,totalIter)
 }
 
 func processRow(hash string, validOccs []int) int{
-	var closedHashes []string
-	var currHashes []string
-	currHashes = append(currHashes, hash)
 	
-	var nextHashes []string
-	i := 0
+	var res int
+	//iter for testing
+	var iter int
 
+	processMemo(hash, 0, validOccs, &res, &iter)
 
-	for{
-		if len(currHashes) == 0{
-			i += 1
-			fmt.Println(i, "/",len(hash), "Len",len(nextHashes))
-			currHashes = append([]string{},nextHashes...)
-			if len(currHashes) == 0{
-				break
-			}
-			nextHashes = []string{}
-		} 
-
-		h := currHashes[0]
-		currHashes = currHashes[1:]
-
-		
-		occ := calculateOccurences(h)
-		position := matchingOccs(occ, validOccs)
-		if position == -1{
-			continue
-		}
-		if position == len(validOccs) && !contains(closedHashes,h) {
-			closedHashes = append(closedHashes, h)
-			continue
-		}
-		
-		if i >= len(hash){
-			continue
-		}
-		nextHashes = append(nextHashes, h)
-
-		if h[i] != '?'{
-			continue
-		}
-
-		hArr := []rune(h)
-		hArr[i] = '#'
-
-		nextHashes = append(nextHashes, string(hArr))
-	}
-	fmt.Println("==========")
-	fmt.Println(hash,validOccs, len(closedHashes))
-	// fmt.Println("Results")
-	// for _, r := range closedHashes{
-	// 	fmt.Println(r)
-	// }
-
-	return len(closedHashes)
+	fmt.Println("!!!!!!!!")
+	fmt.Println(hash)
+	fmt.Println(res,iter)	
+	fmt.Println("---------")
+	return res
 }
 func firstPart(input string) int{
 	rows := strings.Split(input, "\r\n")
@@ -140,6 +114,7 @@ func firstPart(input string) int{
 
 		var fOccs []int 
 		var fHashes string
+		
 		for i := range 5 {
 			fOccs = append(fOccs, occs...)
 			if i == 4 {
@@ -148,11 +123,9 @@ func firstPart(input string) int{
 				fHashes += hash + "?"
 			}
 		}
-
 		resInt := processRow(fHashes, fOccs)
 
 		total += resInt
-		// fmt.Println("Total for", hash, "Results", resInt)
 	}
 	return total
 }
