@@ -21,7 +21,7 @@ func reverse(str string) (result string) {
     } 
     return
 } 
-func firstPart(input string) int{
+func secondPart(input string) int{
 	var res int
 	parts := strings.Split(input, "mul(")
 
@@ -85,7 +85,7 @@ func firstPart(input string) int{
 func main() {
 	start := time.Now()
 	input, _ := os.ReadFile(".\\input\\01.txt")
-	res := firstPart(string(input))
+	res := secondPart(string(input))
 
 	fmt.Println(res)
 
