@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 )
+
+//int64 not needed , im a peepeega
 func isEqualSteps(steps string, target int64) bool{
 	var res int64
 	stps := strings.Split(steps, " ")
