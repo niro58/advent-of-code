@@ -6,7 +6,7 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/2024/13/main.go"
+      "program": "${workspaceFolder}/2024/14/main.go"
     }
   ]
 }
