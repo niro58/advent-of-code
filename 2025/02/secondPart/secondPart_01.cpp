@@ -30,7 +30,31 @@ std::vector<std::string> split(const std::string& s, const std::string& delimite
 }
 
 
+string getInvalidId(string numStr){
+    int l = 1;
+    while(l < numStr.length()){
+      if(numStr.length() % l != 0){
+        l += 1;
+        continue;
+      }
+      bool isValid = true;
+      string pattern = numStr.substr(0, l);
+      for(int j = l; j + l - 1 < numStr.length(); j += l){
+        string val = numStr.substr(j, l);
+        if(pattern != val){
+          isValid = false;
+          break;
+        }
+      }
+      if(isValid){
+        cout << "IS VALID " << numStr << "\n\n";
 
+        return numStr;
+      }
+      l += 1;
+    }
+   return "";
+}
 int main() {
   string inputContent = getFileContent("input/002.txt");
   string resultContent = getFileContent("result/002.txt");
@@ -46,14 +70,12 @@ int main() {
  
     for(long int i = leftInt; i <= rightInt;i += 1) {
       const string numStr = std::to_string(i);
-      if(numStr.length()% 2 == 1){
+      string invalidId = getInvalidId(numStr);
+      if(invalidId == ""){
         continue;
       }
-      const string numStrLeft = numStr.substr(0, numStr.length() / 2);
-      const string numStrRight = numStr.substr(numStr.length() / 2 , numStr.length());
-      if(numStrLeft == numStrRight){
-        total += i;
-      }
+
+      total += std::stol(invalidId);
     }
 
   }
